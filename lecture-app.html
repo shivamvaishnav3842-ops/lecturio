@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta name="referrer" content="no-referrer">
+<title>ClassNow</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#ffffff;--text:#16202c;--sub:#5b6b7c;--line:#e3e9f0;
+  --accent1:#2563eb;--accent2:#06b6d4;--good:#16a34a;--bad:#dc2626;--warn:#d97706;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1420;--card:#141d2b;--text:#eaf0f7;--sub:#93a2b4;--line:#233043;
+}}
+:root[data-theme="dark"]{--bg:#0d1420;--card:#141d2b;--text:#eaf0f7;--sub:#93a2b4;--line:#233043;}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{height:100%;margin:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+#app{max-width:880px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+.hidden{display:none!important}
+
+/* LOGIN */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(circle at 20% 20%,#3b82f6 0,transparent 45%),radial-gradient(circle at 80% 80%,#06b6d4 0,transparent 45%),var(--bg)}
+.login-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:36px 30px;width:100%;max-width:380px;
+  box-shadow:0 20px 60px -20px rgba(30,60,120,.35);text-align:center}
+.logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--accent1),var(--accent2));
+  margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff}
+.login-card h1{margin:0 0 4px;font-size:22px}
+.login-card p{color:var(--sub);margin:0 0 22px;font-size:13px}
+.field{text-align:left;margin-bottom:14px}
+.field label{font-size:12px;color:var(--sub);display:block;margin-bottom:5px}
+.field input,.field select{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px}
+.btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent1),var(--accent2));
+  color:#fff;font-weight:600;font-size:14px;cursor:pointer;margin-top:6px}
+.btn:active{opacity:.85}
+.msg{font-size:12px;margin-top:10px;min-height:16px}
+.msg.err{color:var(--bad)} .msg.ok{color:var(--good)}
+.note{font-size:11px;color:var(--sub);margin-top:16px;line-height:1.5}
+
+/* SHELL */
+header{position:sticky;top:0;padding:14px 18px;padding-top:calc(14px + env(safe-area-inset-top,0px));
+  background:var(--card);border-bottom:1px solid var(--line);z-index:5}
+.top-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.datebox{background:linear-gradient(135deg,var(--accent1),var(--accent2));color:#fff;border-radius:12px;
+  padding:8px 14px;font-size:13px;font-weight:600;letter-spacing:.2px;box-shadow:0 6px 16px -6px rgba(37,99,235,.5)}
+.team{font-size:12px;color:var(--sub)}
+nav{display:flex;gap:6px;margin-top:12px;overflow-x:auto}
+nav button{border:1px solid var(--line);background:var(--bg);color:var(--text);padding:8px 13px;border-radius:999px;
+  font-size:12.5px;white-space:nowrap;cursor:pointer}
+nav button.active{background:var(--accent1);color:#fff;border-color:var(--accent1)}
+main{flex:1;padding:18px}
+.slide{display:none;animation:fade .25s ease}
+.slide.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+.card h2{margin:0 0 4px;font-size:17px}
+.card .hint{color:var(--sub);font-size:12.5px;margin-bottom:14px}
+.now-card{background:linear-gradient(135deg,var(--accent1),var(--accent2));color:#fff;border:none}
+.now-card .hint{color:rgba(255,255,255,.85)}
+.now-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.now-item b{display:block;font-size:15px}
+.now-item span{font-size:11px;opacity:.85}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--sub);font-weight:600;font-size:11.5px;text-transform:uppercase}
+.row-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.row-form input,.row-form select{padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:13px}
+.row-form .full{grid-column:1/-1}
+.chip{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600}
+.chip.present{background:#dcfce7;color:#15803d}
+.chip.absent{background:#fee2e2;color:#b91c1c}
+.del{background:none;border:none;color:var(--bad);cursor:pointer;font-size:15px}
+.togglebtn{padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;font-size:12.5px}
+.tinp{width:100%;min-width:70px;padding:6px 7px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:12.5px}
+.save{background:var(--good);border:none;color:#fff;border-radius:6px;padding:5px 9px;font-size:11.5px;cursor:pointer}
+.status-line{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:10px}
+.dot{width:9px;height:9px;border-radius:50%}
+.dot.on{background:var(--good)} .dot.off{background:var(--sub)}
+small.sub{color:var(--sub)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="login">
+  <div class="login-card">
+    <div class="logo">📡</div>
+    <h1>ClassNow</h1>
+    <p>Coding Club · GECPL</p>
+    <div style="display:flex;gap:8px;margin-bottom:18px">
+      <button class="togglebtn" id="roleStudentBtn" style="flex:1" onclick="setRole('student')">🎓 Student</button>
+      <button class="togglebtn" id="roleAdminBtn" style="flex:1" onclick="setRole('admin')">🛡 Admin</button>
+    </div>
+    <div id="studentFields">
+      <div class="field"><label>Enrollment Number</label><input id="loginEnroll" placeholder="e.g. 220123456789"></div>
+      <div class="field"><label>Student Name</label><input id="loginName" placeholder="e.g. Priya Shah"></div>
+      <div class="field"><label>Semester</label>
+        <select id="loginSem">
+          <option value="1">Semester 1</option><option value="2">Semester 2</option>
+          <option value="3">Semester 3</option><option value="4">Semester 4</option>
+          <option value="5">Semester 5</option><option value="6">Semester 6</option>
+          <option value="7">Semester 7</option><option value="8">Semester 8</option>
+        </select>
+      </div>
+    </div>
+    <div id="adminFields" class="hidden">
+      <div class="field"><label>Admin Username</label><input id="adminName" placeholder="Admin username" autocomplete="username"></div>
+      <div class="field"><label>Admin Password</label><input id="adminPass" type="password" placeholder="Admin password" autocomplete="current-password"></div>
+    </div>
+    <button class="btn" onclick="doLogin()">Enter ClassNow</button>
+    <div class="msg" id="loginMsg"></div>
+    <div class="note" id="loginNote">Open to anyone with this link — no Claude account or org sign-in needed. You log in once and stay signed in on this device. Data (schedule, attendance, students) is saved per device/browser, not synced across everyone's phones — see below.</div>
+  </div>
+</div>
+
+<div id="shell" class="hidden">
+  <header>
+    <div class="top-row">
+      <div><strong>ClassNow</strong><div class="team" id="teamLabel"></div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="datebox" id="dateBox"></div>
+        <button class="togglebtn" onclick="doLogout()" title="Log out">⎋ Logout</button>
+      </div>
+    </div>
+    <nav id="tabs">
+      <button data-t="now" class="active" onclick="switchTab('now',this)">📍 Current Lecture</button>
+      <button data-t="week" onclick="switchTab('week',this)">🗓 Weekly Schedule</button>
+      <button data-t="att" onclick="switchTab('att',this)">✅ Attendance</button>
+      <button data-t="notif" onclick="switchTab('notif',this)">🔔 Notifications</button>
+      <button data-t="admin" id="adminTabBtn" class="hidden" onclick="switchTab('admin',this)">🛡 Admin Panel</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="slide active" id="slide-now">
+      <div class="card now-card">
+        <h2>Right now</h2>
+        <div class="hint" id="nowSub">—</div>
+        <div id="nowBody"></div>
+      </div>
+      <div class="card">
+        <h2>Up next today</h2>
+        <div id="nextList" class="hint">—</div>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-week">
+      <div class="card">
+        <h2>Weekly Schedule</h2>
+        <div class="hint" id="weekHint">Shows the schedule for your semester.</div>
+        <div class="row-form">
+          <select id="fDay"><option>Mon</option><option>Tue</option><option>Wed</option><option>Thu</option><option>Fri</option><option>Sat</option><option>Sun</option></select>
+          <select id="fSem" class="hidden"><option value="1">Sem 1</option><option value="2">Sem 2</option><option value="3">Sem 3</option><option value="4">Sem 4</option><option value="5">Sem 5</option><option value="6">Sem 6</option><option value="7">Sem 7</option><option value="8">Sem 8</option></select>
+          <input id="fSubject" placeholder="Subject">
+          <input id="fTime" type="time"><input id="fEnd" type="time">
+          <input id="fRoom" placeholder="Room number">
+          <input id="fProf" placeholder="Professor name">
+          <button class="btn full" onclick="addLecture()">+ Add Lecture</button>
+        </div>
+        <table><thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Room</th><th>Professor</th><th id="weekSemTh"></th><th></th></tr></thead>
+        <tbody id="weekBody"></tbody></table>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-att">
+      <div class="card">
+        <h2>Attendance Management</h2>
+        <div class="hint">Mark and review attendance for today's lectures.</div>
+        <div class="row-form">
+          <input id="aEnroll" placeholder="Student enrollment #">
+          <input id="aName" placeholder="Student name">
+          <select id="aSubject"></select>
+          <select id="aStatus"><option value="present">Present</option><option value="absent">Absent</option></select>
+          <button class="btn full" onclick="markAttendance()">Save Attendance</button>
+        </div>
+        <table><thead><tr><th>Date</th><th>Subject</th><th>Enrollment</th><th>Name</th><th>Status</th></tr></thead>
+        <tbody id="attBody"></tbody></table>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-notif">
+      <div class="card">
+        <h2>Lecture Notifications</h2>
+        <div class="hint">Get alerted 5 minutes and 2 minutes before your next class starts.</div>
+        <div class="status-line"><span class="dot off" id="notifDot"></span><span id="notifStatus">Notifications not enabled</span></div>
+        <button class="togglebtn" onclick="enableNotif()">Enable notifications</button>
+        <p class="note" style="margin-top:16px">This page checks your schedule while it stays open in the browser and fires a real device notification (works even if the tab is in the background, as long as this browser is running). If your phone is paired with a smartwatch, most watches (Wear OS, Apple Watch) automatically mirror phone/browser notifications — that mirroring is controlled by your watch's own OS settings, not by this app, so enable "notification mirroring" in your watch's companion app too.</p>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-admin">
+      <div class="card">
+        <h2>Registered Students — edit any field</h2>
+        <div class="hint">Every student who has ever logged in on this device. Total: <strong id="studentCount">0</strong></div>
+        <table><thead><tr><th>Enrollment</th><th>Name</th><th>Semester</th><th colspan="2"></th></tr></thead>
+        <tbody id="adminStudentsBody"></tbody></table>
+      </div>
+      <div class="card">
+        <h2>Weekly Schedule — edit any field</h2>
+        <div class="hint">Fix a typo, change a room, move a time — saves immediately.</div>
+        <table><thead><tr><th>Sem</th><th>Day</th><th>Start</th><th>End</th><th>Subject</th><th>Room</th><th>Professor</th><th colspan="2"></th></tr></thead>
+        <tbody id="adminSchedBody"></tbody></table>
+      </div>
+      <div class="card">
+        <h2>All Attendance — edit or override</h2>
+        <div class="hint">Change any student's record, status, or remove a bad entry.</div>
+        <table><thead><tr><th>Date</th><th>Subject</th><th>Enrollment</th><th>Name</th><th>Status</th><th colspan="2"></th></tr></thead>
+        <tbody id="adminAttBody"></tbody></table>
+      </div>
+    </section>
+  </main>
+</div>
+</div>
+
+<script>
+let db=null, team=null, role='student', schedule=[], attendance=[], students=[], firedKeys=new Set();
+const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const SESSION_TTL_MS = 12*3600*1000; // 12h auto-logout
+const LOCK_MAX_FAILS = 5, LOCK_MS = 60000;
+const ADMIN_USER = "shlok25";
+const ADMIN_PASS_HASH = "01cd8e8c24931fdc33e6050c715bbc4a242487e3d4a3d44d7bd244036bd4826a"; // sha-256, not the plain passcode
+
+/* ---- input validation & sanitization ---- */
+function sanitize(s,max){ return (s==null?'':String(s)).trim().replace(/[<>"'`\\]/g,'').slice(0,max||60); }
+function validEnroll(s){ return /^[A-Za-z0-9\-]{3,20}$/.test(s); }
+function validName(s){ return /^[A-Za-z][A-Za-z .'-]{1,39}$/.test(s); }
+function validTime(s){ return !s || /^([01]\d|2[0-3]):[0-5]\d$/.test(s); }
+
+/* ---- crypto: hash admin passcode, never store it in plain text ---- */
+async function sha256(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function randomId(){ return crypto.getRandomValues(new Uint32Array(4)).join(''); }
+
+/* ---- admin login rate limiting (defense against brute-force passcode guessing) ---- */
+function getLock(){ try{ return JSON.parse(localStorage.getItem('classnow_admin_lock')||'{"fails":0,"until":0}'); }catch(e){ return {fails:0,until:0}; } }
+function setLock(l){ localStorage.setItem('classnow_admin_lock',JSON.stringify(l)); }
+function recordFail(){ const l=getLock(); l.fails=(l.fails||0)+1; if(l.fails>=LOCK_MAX_FAILS){ l.until=Date.now()+LOCK_MS; l.fails=0; } setLock(l); }
+function clearFails(){ setLock({fails:0,until:0}); }
+
+async function boot(){
+  await seedAdmin();
+  setRole('student');
+  try{
+    const saved = localStorage.getItem("classnow_session");
+    if(saved){
+      const s=JSON.parse(saved);
+      if(s && s.exp && s.exp>Date.now()){ team={enroll:s.enroll,name:s.name,semester:s.semester}; role=s.role||'student'; showShell(); }
+      else { localStorage.removeItem('classnow_session'); }
+    }
+  }catch(e){ localStorage.removeItem('classnow_session'); }
+  tickDate();
+  setInterval(tickDate,30000);
+  setInterval(checkNotifTimes,20000);
+  setInterval(checkSessionExpiry,60000);
+}
+function checkSessionExpiry(){
+  if(!team) return;
+  try{
+    const s=JSON.parse(localStorage.getItem('classnow_session')||'null');
+    if(!s || !s.exp || s.exp<=Date.now()) doLogout();
+  }catch(e){ doLogout(); }
+}
+
+function setRole(r){
+  role=r;
+  document.getElementById('roleStudentBtn').style.background = r==='student'?'var(--accent1)':'';
+  document.getElementById('roleStudentBtn').style.color = r==='student'?'#fff':'';
+  document.getElementById('roleAdminBtn').style.background = r==='admin'?'var(--accent1)':'';
+  document.getElementById('roleAdminBtn').style.color = r==='admin'?'#fff':'';
+  document.getElementById('studentFields').classList.toggle('hidden', r==='admin');
+  document.getElementById('adminFields').classList.toggle('hidden', r==='student');
+}
+
+function tickDate(){
+  const d=new Date();
+  const opts={weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  const el=document.getElementById('dateBox');
+  if(el) el.textContent = d.toLocaleDateString(undefined,opts)+" · "+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+  if(team) renderNow();
+}
+
+async function doLogin(){
+  const msg=document.getElementById('loginMsg');
+  msg.className='msg'; msg.textContent='';
+  try{
+    if(role==='student'){
+      const enroll=sanitize(document.getElementById('loginEnroll').value,20);
+      const name=sanitize(document.getElementById('loginName').value,40);
+      const semester=parseInt(document.getElementById('loginSem').value,10);
+      if(!enroll||!name){msg.className='msg err';msg.textContent='Enter both fields.';return;}
+      if(!validEnroll(enroll)){msg.className='msg err';msg.textContent='Enrollment number: letters, numbers, hyphens only (3–20 chars).';return;}
+      if(!validName(name)){msg.className='msg err';msg.textContent='Name: letters and spaces only (2–40 chars).';return;}
+      if(!(semester>=1 && semester<=8)){msg.className='msg err';msg.textContent='Select a valid semester (1–8).';return;}
+      const list=JSON.parse(localStorage.getItem('classnow_students')||'[]');
+      const existing=list.find(s=>s.enroll===enroll);
+      if(existing && existing.name.toLowerCase()!==name.toLowerCase()){
+        msg.className='msg err';msg.textContent='Enrollment/name combination not recognized.';return;
+      }
+      if(!existing){ list.push({enroll,name,semester,createdAt:Date.now()}); localStorage.setItem('classnow_students',JSON.stringify(list)); }
+      else if(existing.semester!==semester){ existing.semester=semester; localStorage.setItem('classnow_students',JSON.stringify(list)); }
+      team={enroll,name,semester};
+    } else {
+      const lock=getLock();
+      if(lock.until>Date.now()){
+        msg.className='msg err';msg.textContent='Too many attempts. Try again in '+Math.ceil((lock.until-Date.now())/1000)+'s.';return;
+      }
+      const name=sanitize(document.getElementById('adminName').value,40);
+      const pass=document.getElementById('adminPass').value;
+      if(!name||!pass){msg.className='msg err';msg.textContent='Enter both fields.';return;}
+      const hash=await sha256(pass);
+      if(name.toLowerCase()!==ADMIN_USER.toLowerCase() || hash!==ADMIN_PASS_HASH){
+        recordFail(); msg.className='msg err'; msg.textContent='Incorrect credentials.'; return;
+      }
+      clearFails();
+      team={enroll:'admin',name:ADMIN_USER};
+    }
+    localStorage.setItem('classnow_session',JSON.stringify({enroll:team.enroll,name:team.name,semester:team.semester,role,sid:randomId(),exp:Date.now()+SESSION_TTL_MS}));
+    msg.className='msg ok';msg.textContent='Welcome!';
+    setTimeout(showShell,300);
+  }catch(e){ msg.className='msg err'; msg.textContent='Something went wrong. Please try again.'; }
+}
+
+function showShell(){
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('shell').classList.remove('hidden');
+  document.getElementById('teamLabel').textContent = role==='admin' ? '🛡 '+team.name+' (Admin)' : team.name+' · '+team.enroll+' · Sem '+team.semester;
+  document.getElementById('adminTabBtn').classList.toggle('hidden', role!=='admin');
+  document.getElementById('fSem').classList.toggle('hidden', role!=='admin');
+  document.getElementById('weekSemTh').textContent = role==='admin' ? 'Sem' : '';
+  document.getElementById('weekHint').textContent = role==='admin'
+    ? 'Showing every semester\'s lectures — pick a semester when adding a new one.'
+    : 'Showing your Semester '+team.semester+' schedule.';
+  if(role==='student') document.getElementById('fSem').value=team.semester;
+  loadSchedule(); loadAttendance();
+  if(role==='admin') loadStudents();
+}
+function scopedSchedule(){
+  return role==='admin' ? schedule : schedule.filter(s=>(s.semester||1)===team.semester);
+}
+
+function switchTab(t,btn){
+  const target=document.getElementById('slide-'+t);
+  if(!target) return;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  target.classList.add('active');
+}
+
+function doLogout(){
+  localStorage.removeItem('classnow_session');
+  team=null;
+  document.getElementById('loginEnroll').value='';
+  document.getElementById('loginName').value='';
+  document.getElementById('loginSem').value='1';
+  document.getElementById('adminName').value='';
+  document.getElementById('adminPass').value='';
+  document.getElementById('loginMsg').textContent='';
+  document.getElementById('shell').classList.add('hidden');
+  document.getElementById('login').classList.remove('hidden');
+  setRole('student');
+}
+
+function loadSchedule(){
+  try{ schedule=JSON.parse(localStorage.getItem('classnow_schedule')||'[]'); }catch(e){ schedule=[]; }
+  renderWeek(); renderAttSubjects(); renderNow();
+  if(role==='admin') renderAdminSchedule();
+}
+function saveSchedule(){ localStorage.setItem('classnow_schedule',JSON.stringify(schedule)); }
+
+function renderWeek(){
+  const order=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const sorted=[...scopedSchedule()].sort((a,b)=>order.indexOf(a.day)-order.indexOf(b.day)||(a.time||'').localeCompare(b.time||''));
+  document.getElementById('weekBody').innerHTML = sorted.map(s=>`<tr>
+    <td>${s.day}</td><td>${s.time||''}${s.endTime?'–'+s.endTime:''}</td><td>${esc(s.subject)}</td>
+    <td>${esc(s.room)}</td><td>${esc(s.professor)}</td>
+    <td>${role==='admin'?('Sem '+(s.semester||1)):''}</td>
+    <td><button class="del" onclick="delLecture('${s.id}')">✕</button></td></tr>`).join('') || '<tr><td colspan="7"><small class="sub">No lectures added yet.</small></td></tr>';
+}
+
+function addLecture(){
+  const day=document.getElementById('fDay').value;
+  const semester = role==='admin' ? parseInt(document.getElementById('fSem').value,10) : team.semester;
+  const subject=sanitize(document.getElementById('fSubject').value,60);
+  const time=document.getElementById('fTime').value;
+  const endTime=document.getElementById('fEnd').value;
+  const room=sanitize(document.getElementById('fRoom').value,20);
+  const professor=sanitize(document.getElementById('fProf').value,60);
+  if(!subject||!time){alert('Subject and start time are required.');return;}
+  if(!validTime(time)||!validTime(endTime)){alert('Enter a valid time (HH:MM).');return;}
+  if(!DAYS.slice(1).concat(DAYS[0]).includes(day)){alert('Invalid day.');return;}
+  if(!(semester>=1 && semester<=8)){alert('Invalid semester.');return;}
+  const id='l'+Date.now()+Math.random().toString(36).slice(2,7);
+  schedule.push({id,day,semester,subject,time,endTime,room,professor,addedBy:team.enroll});
+  saveSchedule();
+  ['fSubject','fTime','fEnd','fRoom','fProf'].forEach(id=>document.getElementById(id).value='');
+  loadSchedule();
+}
+function delLecture(id){ schedule=schedule.filter(s=>s.id!==id); saveSchedule(); loadSchedule(); }
+
+function renderAdminSchedule(){
+  const dayOpts=(cur)=>DAYS.slice(1).concat(DAYS[0]).map(d=>`<option ${d===cur?'selected':''}>${d}</option>`).join('');
+  const semOpts=(cur)=>[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${n===cur?'selected':''}>${n}</option>`).join('');
+  document.getElementById('adminSchedBody').innerHTML = schedule.map((s,i)=>`<tr>
+    <td><select class="tinp" id="scSem_${i}">${semOpts(s.semester||1)}</select></td>
+    <td><select class="tinp" id="scD_${i}">${dayOpts(s.day)}</select></td>
+    <td><input class="tinp" type="time" id="scT_${i}" value="${escAttr(s.time)}"></td>
+    <td><input class="tinp" type="time" id="scE_${i}" value="${escAttr(s.endTime)}"></td>
+    <td><input class="tinp" id="scS_${i}" value="${escAttr(s.subject)}"></td>
+    <td><input class="tinp" id="scR_${i}" value="${escAttr(s.room)}"></td>
+    <td><input class="tinp" id="scP_${i}" value="${escAttr(s.professor)}"></td>
+    <td><button class="save" onclick="adminSaveLecture('${s.id}',${i})">Save</button></td>
+    <td><button class="del" onclick="delLecture('${s.id}')">✕</button></td></tr>`).join('') || '<tr><td colspan="9"><small class="sub">No lectures yet.</small></td></tr>';
+}
+function adminSaveLecture(id,i){
+  const semester=parseInt(document.getElementById('scSem_'+i).value,10);
+  const day=document.getElementById('scD_'+i).value;
+  const time=document.getElementById('scT_'+i).value;
+  const endTime=document.getElementById('scE_'+i).value;
+  const subject=sanitize(document.getElementById('scS_'+i).value,60);
+  const room=sanitize(document.getElementById('scR_'+i).value,20);
+  const professor=sanitize(document.getElementById('scP_'+i).value,60);
+  if(!subject||!time){alert('Subject and start time are required.');return;}
+  if(!validTime(time)||!validTime(endTime)){alert('Enter a valid time (HH:MM).');return;}
+  schedule=schedule.map(s=>s.id===id?{...s,semester,day,time,endTime,subject,room,professor,editedBy:team.name}:s);
+  saveSchedule();
+  loadSchedule();
+}
+
+function renderAttSubjects(){
+  const sel=document.getElementById('aSubject');
+  const subs=[...new Set(scopedSchedule().map(s=>s.subject))];
+  sel.innerHTML = subs.map(s=>`<option>${esc(s)}</option>`).join('') || '<option>No subjects yet</option>';
+}
+
+function loadAttendance(){
+  try{ attendance=JSON.parse(localStorage.getItem('classnow_attendance')||'[]').sort((a,b)=>b.date.localeCompare(a.date)); }catch(e){ attendance=[]; }
+  renderAttendance();
+  if(role==='admin') renderAdminAttendance();
+}
+function saveAttendance(){ localStorage.setItem('classnow_attendance',JSON.stringify(attendance)); }
+function renderAttendance(){
+  document.getElementById('attBody').innerHTML = attendance.map(a=>`<tr>
+    <td>${a.date}</td><td>${esc(a.subject)}</td><td>${esc(a.enroll)}</td><td>${esc(a.name)}</td>
+    <td><span class="chip ${a.status}">${a.status}</span></td></tr>`).join('') || '<tr><td colspan="5"><small class="sub">No records yet.</small></td></tr>';
+}
+function markAttendance(){
+  const enroll=sanitize(document.getElementById('aEnroll').value,20);
+  const name=sanitize(document.getElementById('aName').value,40);
+  const subject=sanitize(document.getElementById('aSubject').value,60);
+  const status=document.getElementById('aStatus').value;
+  if(!enroll||!name||!subject){alert('Fill in student enrollment, name and subject.');return;}
+  if(!validEnroll(enroll)){alert('Enrollment number: letters, numbers, hyphens only (3–20 chars).');return;}
+  if(!validName(name)){alert('Name: letters and spaces only (2–40 chars).');return;}
+  if(status!=='present'&&status!=='absent'){alert('Invalid status.');return;}
+  const date=new Date().toISOString().slice(0,10);
+  const id=date+'_'+subject.replace(/\s+/g,'')+'_'+enroll;
+  attendance=attendance.filter(a=>a.id!==id);
+  attendance.push({id,date,subject,enroll,name,status,markedBy:team.enroll});
+  saveAttendance();
+  document.getElementById('aEnroll').value='';document.getElementById('aName').value='';
+  loadAttendance();
+}
+
+function loadStudents(){
+  try{ students=JSON.parse(localStorage.getItem('classnow_students')||'[]').map((s,i)=>({id:s.enroll,...s})); }catch(e){ students=[]; }
+  renderAdminStudents();
+}
+function renderAdminStudents(){
+  document.getElementById('studentCount').textContent = students.length;
+  const semOpts=(cur)=>[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}" ${n===cur?'selected':''}>${n}</option>`).join('');
+  document.getElementById('adminStudentsBody').innerHTML = students.map((s,i)=>`<tr>
+    <td><input class="tinp" id="se_${i}" value="${escAttr(s.enroll)}"></td>
+    <td><input class="tinp" id="sn_${i}" value="${escAttr(s.name)}"></td>
+    <td><select class="tinp" id="ss_${i}">${semOpts(s.semester||1)}</select></td>
+    <td><button class="save" onclick="adminSaveStudent(${i})">Save</button></td>
+    <td><button class="del" onclick="adminDeleteStudent('${escAttr(s.enroll)}')">✕</button></td></tr>`).join('') || '<tr><td colspan="5"><small class="sub">No students yet.</small></td></tr>';
+}
+function adminSaveStudent(i){
+  const oldEnroll=students[i].enroll;
+  const enroll=sanitize(document.getElementById('se_'+i).value,20);
+  const name=sanitize(document.getElementById('sn_'+i).value,40);
+  const semester=parseInt(document.getElementById('ss_'+i).value,10);
+  if(!validEnroll(enroll)){alert('Enrollment: letters, numbers, hyphens only (3–20 chars).');return;}
+  if(!validName(name)){alert('Name: letters and spaces only (2–40 chars).');return;}
+  const list=JSON.parse(localStorage.getItem('classnow_students')||'[]');
+  const idx=list.findIndex(s=>s.enroll===oldEnroll);
+  if(idx>-1){ list[idx]={...list[idx],enroll,name,semester}; localStorage.setItem('classnow_students',JSON.stringify(list)); }
+  loadStudents();
+}
+function adminDeleteStudent(enroll){
+  if(!confirm('Remove this student record?'))return;
+  const list=JSON.parse(localStorage.getItem('classnow_students')||'[]').filter(s=>s.enroll!==enroll);
+  localStorage.setItem('classnow_students',JSON.stringify(list));
+  loadStudents();
+}
+
+function renderAdminAttendance(){
+  document.getElementById('adminAttBody').innerHTML = attendance.map((a,i)=>`<tr>
+    <td>${esc(a.date)}</td>
+    <td><input class="tinp" id="atS_${i}" value="${escAttr(a.subject)}"></td>
+    <td><input class="tinp" id="atE_${i}" value="${escAttr(a.enroll)}"></td>
+    <td><input class="tinp" id="atN_${i}" value="${escAttr(a.name)}"></td>
+    <td><select class="tinp" id="atSt_${i}">
+      <option value="present" ${a.status==='present'?'selected':''}>Present</option>
+      <option value="absent" ${a.status==='absent'?'selected':''}>Absent</option></select></td>
+    <td><button class="save" onclick="adminSaveAttendance('${a.id}',${i})">Save</button></td>
+    <td><button class="del" onclick="adminDeleteAttendance('${a.id}')">✕</button></td></tr>`).join('') || '<tr><td colspan="7"><small class="sub">No records yet.</small></td></tr>';
+}
+function adminSaveAttendance(id,i){
+  const subject=sanitize(document.getElementById('atS_'+i).value,60);
+  const enroll=sanitize(document.getElementById('atE_'+i).value,20);
+  const name=sanitize(document.getElementById('atN_'+i).value,40);
+  const status=document.getElementById('atSt_'+i).value;
+  if(!validEnroll(enroll)){alert('Enrollment: letters, numbers, hyphens only (3–20 chars).');return;}
+  if(!validName(name)){alert('Name: letters and spaces only (2–40 chars).');return;}
+  if(!subject){alert('Subject is required.');return;}
+  attendance=attendance.map(a=>a.id===id?{...a,subject,enroll,name,status,overriddenBy:team.name}:a);
+  saveAttendance(); loadAttendance();
+}
+function adminDeleteAttendance(id){
+  if(!confirm('Delete this attendance record?'))return;
+  attendance=attendance.filter(a=>a.id!==id); saveAttendance(); loadAttendance();
+}
+
+function esc(s){ return (s||'').toString().replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c])); }
+function escAttr(s){ return (s||'').toString().replace(/[<>&"']/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function minsNow(){ const d=new Date(); return d.getHours()*60+d.getMinutes(); }
+function toMins(t){ if(!t) return null; const [h,m]=t.split(':').map(Number); return h*60+m; }
+
+function renderNow(){
+  const mine=scopedSchedule();
+  if(!mine.length){
+    document.getElementById('nowSub').textContent = role==='admin' ? 'No schedule added yet.' : 'No lectures added for Semester '+team.semester+' yet.';
+    document.getElementById('nowBody').innerHTML='';
+    document.getElementById('nextList').textContent='Add lectures in the Weekly Schedule tab.';
+    return;
+  }
+  const today=DAYS[new Date().getDay()];
+  const todays=mine.filter(s=>s.day===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const nowM=minsNow();
+  const current=todays.find(s=>toMins(s.time)<=nowM && (!s.endTime || toMins(s.endTime)>nowM));
+  if(current){
+    document.getElementById('nowSub').textContent=today+' · in progress';
+    document.getElementById('nowBody').innerHTML=`<div class="now-grid">
+      <div class="now-item"><span>Subject</span><b>${esc(current.subject)}</b></div>
+      <div class="now-item"><span>Room</span><b>${esc(current.room)||'—'}</b></div>
+      <div class="now-item"><span>Professor</span><b>${esc(current.professor)||'—'}</b></div>
+      <div class="now-item"><span>Time</span><b>${current.time}${current.endTime?'–'+current.endTime:''}</b></div></div>`;
+  } else {
+    document.getElementById('nowSub').textContent=today+' · no lecture right now';
+    document.getElementById('nowBody').innerHTML='';
+  }
+  const upcoming=todays.filter(s=>toMins(s.time)>nowM);
+  document.getElementById('nextList').innerHTML = upcoming.length ? upcoming.map(s=>
+    `<div style="margin-bottom:6px"><b>${s.time}</b> — ${esc(s.subject)} · Room ${esc(s.room)||'—'} · ${esc(s.professor)||'—'}</div>`
+  ).join('') : 'No more lectures today.';
+}
+
+async function enableNotif(){
+  if(!('Notification' in window)){ setNotifStatus(false,'Notifications not supported in this browser.'); return; }
+  const perm = await Notification.requestPermission();
+  if(perm==='granted'){ setNotifStatus(true,"Notifications enabled — you'll be alerted 5 & 2 min before each lecture."); }
+  else { setNotifStatus(false,'Permission denied. Enable it in your browser/site settings.'); }
+}
+function setNotifStatus(on,text){
+  document.getElementById('notifDot').className='dot '+(on?'on':'off');
+  document.getElementById('notifStatus').textContent=text;
+}
+function checkNotifTimes(){
+  if(!team || Notification.permission!=='granted' || !schedule.length) return;
+  const today=DAYS[new Date().getDay()];
+  const nowM=minsNow();
+  const dayKey=new Date().toISOString().slice(0,10);
+  schedule.filter(s=>s.day===today && s.time).forEach(s=>{
+    const start=toMins(s.time);
+    [5,2].forEach(lead=>{
+      const key=dayKey+'_'+s.id+'_'+lead;
+      if(start-nowM===lead && !firedKeys.has(key)){
+        firedKeys.add(key);
+        new Notification('Lecture in '+lead+' min',{body:s.subject+' · Room '+(s.room||'—')+' · '+(s.professor||''),icon:''});
+      }
+    });
+  });
+}
+
+boot();
+</script>
+</body>
+</html>
